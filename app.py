@@ -5,52 +5,218 @@ import matplotlib.pyplot as plt
 import shap
 from model import load_or_train_model, prepare_input
 import seaborn as sns
+from streamlit_echarts import st_echarts
+import math
 
-st.set_page_config(page_title="FraudLens AI", layout="wide")
+st.set_page_config(page_title="FraudRadar", layout="wide")
 
 model, explainer, scaler, columns, df = load_or_train_model()
 
-# Sidebar Styling
-st.sidebar.markdown("""
+# ---------------- AI VISUAL COMPONENTS ----------------
+
+def fraud_risk_meter(prob):
+
+    if prob is None:
+        prob = 0
+
+    prob = float(prob)
+    percent = round(prob * 100, 2)
+
+    option = {
+        "series": [
+            {
+                "type": "gauge",
+
+                "startAngle": 180,
+                "endAngle": 0,
+
+                "min": 0,
+                "max": 100,
+
+                "radius": "100%",
+                "center": ["50%", "75%"],
+
+                "axisLine": {
+                    "lineStyle": {
+                        "width": 20,
+                        "color": [
+                            [0.3, "#00ff99"],
+                            [0.7, "#ffcc00"],
+                            [1, "#ff4d4d"]
+                        ]
+                    }
+                },
+
+                "pointer": {
+                    "length": "60%",
+                    "width": 6
+                },
+
+                "progress": {
+                    "show": True,
+                    "width": 20
+                },
+
+                "axisTick": {"show": False},
+                "splitLine": {"show": False},
+                "axisLabel": {"show": False},
+
+                "detail": {
+                    "formatter": "{value}%",
+                    "fontSize": 22,
+                    "color": "white",
+                    "offsetCenter": [0, "-10%"]
+                },
+
+                "data": [
+                    {"value": percent}
+                ]
+            }
+        ]
+    }
+
+    st_echarts(options=option, height="260px")
+
+def risk_badge(prob):
+
+    if prob < 0.3:
+        color = "#00ff99"
+        label = "LOW RISK"
+    elif prob < 0.7:
+        color = "#ffcc00"
+        label = "MEDIUM RISK"
+    else:
+        color = "#ff4d4d"
+        label = "HIGH RISK"
+
+    st.markdown(
+        f"""
+        <div style="
+        padding:10px;
+        border-radius:10px;
+        background:{color};
+        color:black;
+        font-weight:bold;
+        text-align:center;
+        width:200px;
+        ">
+        {label}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def generate_explanation(prob, amount, hour):
+
+    if prob < 0.3:
+        risk = "low"
+    elif prob < 0.7:
+        risk = "moderate"
+    else:
+        risk = "high"
+
+    text = f"""
+    The AI model estimates a **{risk} probability of fraud**.
+
+    The transaction amount **₹{amount:.2f}** occurring at **hour {hour}**
+    is compared with historical behaviour patterns.
+
+    Transactions at unusual times or unusually high amounts
+    increase fraud likelihood, while normal behaviour reduces risk.
+    """
+
+    st.markdown(
+    f"""
+    <div style="
+    padding:18px;
+    border-radius:12px;
+    background:#071b2b;
+    border:1px solid #00c8ff;
+    color:white;
+    ">
+    {text}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# -------------- Sidebar Styling---------------------------------
+st.markdown("""
 <style>
-section[data-testid="stSidebar"] {
-    background-color: #0e1117;
+
+/* Sidebar background */
+section[data-testid="stSidebar"]{
+    background: linear-gradient(180deg,#020617,#030b1a,#020617);
     border-right: 2px solid #00c8ff;
 }
 
-div.stButton > button {
+/* Sidebar navigation buttons */
+.stButton>button{
     width: 100%;
-    padding: 12px;
-    border-radius: 12px;
+    height: 70px;
+    border-radius: 16px;
     border: 2px solid #00c8ff;
     background-color: transparent;
     color: white;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 12px;
+    transition: all 0.3s ease;
 }
 
-div.stButton > button:hover {
-    background-color: #00c8ff;
-    color: black;
+/* Hover effect */
+.stButton>button:hover{
+    background: rgba(0,200,255,0.15);
+    box-shadow: 0px 0px 12px #00c8ff;
+    transform: scale(1.02);
 }
+
+/* Sidebar title */
+.sidebar-title{
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* Section spacing */
+.sidebar-section{
+    margin-top: 30px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
+with st.sidebar:
+
+    st.sidebar.image("data/FRLogo.png",width=260)
+    st.sidebar.markdown("---")
+
+    if st.button("🏠 Home"):
+        st.session_state.page = "Home"
+
+    if st.button("🧪 Scenario Simulator"):
+        st.session_state.page = "Scenario Simulator"
+
+    if st.button("🔍 Local Explanation"):
+        st.session_state.page = "Local Explanation"
+
+    if st.button("🌍 Global Insights"):
+        st.session_state.page = "Global Insights"
+
+    if st.button("📊 Fraud Comparison"):
+        st.session_state.page = "Fraud Comparison"
+
 if "page" not in st.session_state:
     st.session_state.page = "Home"
-
-pages = ["Home", "Scenario Simulator", "Local Explanation", "Global Insights", "Fraud Comparison"]
-
-for p in pages:
-    if st.sidebar.button(p):
-        st.session_state.page = p
-
 page = st.session_state.page
 
 
 # ---------------- HOME ----------------
 if page == "Home":
 
-    st.title("💳 FraudLens AI – Interpretable Credit Card Fraud Detection")
+    st.title("💳 FraudRadar – Explainable Credit Card Fraud Detection System")
 
     st.markdown("""
     ### What This Project Does
@@ -60,7 +226,7 @@ if page == "Home":
 
     That’s not enough.
 
-    FraudLens AI explains:
+    FraudRadar explains:
 
     • Why a transaction is considered risky  
     • Which features increase or decrease fraud probability  
@@ -91,6 +257,7 @@ if page == "Home":
 
 
 # ---------------- SCENARIO SIMULATOR ----------------
+
 if page == "Scenario Simulator":
 
     st.title("⚡ Transaction Scenario Simulator")
@@ -102,15 +269,26 @@ if page == "Scenario Simulator":
 
     probability = model.predict_proba(user_input)[0][1]
 
-    st.metric("Fraud Probability", f"{probability*100:.2f}%")
+    # DASHBOARD LAYOUT
+    col1, col2, col3 = st.columns(3)
 
-    if probability > 0.5:
-        st.error("⚠️ High Fraud Risk")
-    else:
-        st.success("✅ Low Fraud Risk")
+    with col1:
+        st.metric("Fraud Probability", f"{probability*100:.2f}%")
+
+    with col2:
+        st.subheader("Risk Level")
+        risk_badge(probability)
+
+    with col3:
+        st.subheader("Fraud Risk Meter")
+        fraud_risk_meter(probability)
+
+    st.subheader("AI Explanation")
+    generate_explanation(probability, amount, hour)
 
 
 # ---------------- LOCAL EXPLANATION ----------------
+
 if page == "Local Explanation":
 
     st.title("🔍 Why Is This Transaction Risky?")
@@ -132,18 +310,36 @@ if page == "Local Explanation":
 
     impact = impact.sort_values(by="Impact", key=abs, ascending=False).head(8)
 
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots(figsize=(4,2))
     colors = ["red" if val > 0 else "green" for val in impact["Impact"]]
     ax.barh(impact["Feature"], impact["Impact"], color=colors)
     ax.set_xlabel("Impact on Fraud Probability")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=False)
 
     st.markdown("""
-    Red bars increase fraud probability.
-    Green bars decrease fraud probability.
+<div style="
+background-color:#111827;
+border:1px solid #374151;
+padding:18px;
+border-radius:10px;
+margin-top:15px;
+font-size:16px;
+line-height:1.6;
+color:#e5e7eb;
+">
 
-    This explains the exact reasoning behind the model's decision.
-    """)
+<b>Interpretation Guide</b><br><br>
+
+<span style="color:#ff4d4d; font-weight:1000;">Red bars</span> increase the probability that the transaction is fraudulent.<br>
+
+<span style="color:#00ff99; font-weight:1000;">Green bars</span> decrease the probability of fraud.<br><br>
+
+This visualization explains the <b>exact reasoning behind the model's decision</b> by showing which features influenced the fraud prediction the most.
+
+</div>
+""", unsafe_allow_html=True)
+
+
 
 
 # ---------------- GLOBAL INSIGHTS ----------------
@@ -160,7 +356,7 @@ if page == "Global Insights":
     shap_values = explainer.shap_values(X_sample_scaled)
 
     st.subheader("Top Features Influencing Fraud (Global View)")
-    fig, ax = plt.subplots(figsize=(6,4))
+    fig, ax = plt.subplots(figsize=(4,3))
     shap.summary_plot(
         shap_values,
         X_sample,
@@ -169,7 +365,7 @@ if page == "Global Insights":
         show=False
 )
 
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=False)
     plt.close(fig)
 
 # ---------------- FRAUD COMPARISON ----------------
@@ -185,7 +381,7 @@ if page == "Fraud Comparison":
     import seaborn as sns
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots(figsize=(4,2.5))
 
     sns.kdeplot(
         data=df[df["Class"] == 0],
@@ -206,4 +402,6 @@ if page == "Fraud Comparison":
     ax.legend()
     ax.set_xlabel(feature)
 
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=False)
+
+    
