@@ -33,11 +33,11 @@ The result is a **human-readable fraud analysis system** that could be used by:
 # 🧠 Core Idea
 
 Instead of simply predicting fraud:
-Transaction → ML Model → Fraud Probability
+- Transaction → ML Model → Fraud Probability
 
 
 We extend the pipeline:
-Transaction → ML Model → SHAP Explainability → Human-readable Insights
+- Transaction → ML Model → SHAP Explainability → Human-readable Insights
 
 
 This allows us to answer:
@@ -49,14 +49,14 @@ This allows us to answer:
 ---
 
 # ⚙️ Tech Stack
-Python
-Streamlit
-XGBoost
-SHAP (Explainable AI)
-Scikit-learn
-Pandas
-NumPy
-Matplotlib
+- Python
+- Streamlit
+- XGBoost
+- SHAP (Explainable AI)
+- Scikit-learn
+- Pandas
+- NumPy
+- Matplotlib and Seaborn
 
 
 ---
@@ -148,8 +148,8 @@ Even though they look abstract, the ML model can still detect fraud patterns fro
 ## 4️⃣ Class (Target Variable)
 
 Transaction label:
-0 → Normal Transaction
-1 → Fraud Transaction
+- 0 → Normal Transaction
+- 1 → Fraud Transaction
 
 This is the **prediction target for the machine learning model**.
 
@@ -179,8 +179,8 @@ Helps stabilize very large transaction values.
 Is_Night
 
 Flag indicating:
-1 → Transaction occurred between 10 PM – 5 AM
-0 → Otherwise
+- 1 → Transaction occurred between 10 PM – 5 AM
+- 0 → Otherwise
 
 Fraud patterns are often higher during nighttime.
 
@@ -216,7 +216,7 @@ SHAP is based on **cooperative game theory**.
 It answers: How much did each feature contribute to the final prediction?
 
 Example explanation:
-Fraud Probability: 82%
+- Fraud Probability: 82%
 
 Top contributing factors:
 - High transaction amount
