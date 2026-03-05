@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import shap
+import os
+import requests
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -26,13 +28,32 @@ def feature_engineering(df):
     df["High_Amount"] = (df["Amount"] > df["Amount"].quantile(0.95)).astype(int)
 
     return df
+# -------------------------------
+# Data Config
+# -------------------------------
 
+DATA_PATH = "data/creditcard.csv"
+DATA_URL = "https://storage.googleapis.com/download.tensorflow.org/data/creditcard.csv"
 
 # -------------------------------
 # Load & Train Model
 # -------------------------------
+
+def download_dataset():
+    os.makedirs("data", exist_ok=True)
+
+    if not os.path.exists(DATA_PATH):
+        print("Downloading dataset...")
+        r = requests.get(DATA_URL)
+        with open(DATA_PATH, "wb") as f:
+            f.write(r.content)
+
 def load_or_train_model():
-    df = pd.read_csv("data/creditcard.csv")
+
+    download_dataset()
+
+    df = pd.read_csv(DATA_PATH)
+
     df = feature_engineering(df)
 
     X = df.drop("Class", axis=1)
@@ -72,7 +93,7 @@ def load_or_train_model():
 
 
 # -------------------------------
-# Prepare Input for App
+# Prepare Input 
 # -------------------------------
 def prepare_input(amount, hour, scaler, columns, df):
 

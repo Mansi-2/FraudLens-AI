@@ -65,6 +65,17 @@ This allows us to answer:
 
 Dataset: **Credit Card Fraud Detection Dataset**
 
+## Dataset
+
+The dataset is not included in this repository due to GitHub file size limits.
+
+Download it from:
+https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+
+After downloading, place the file here:
+
+FraudLens-AI/data/creditcard.csv
+
 This dataset contains **European cardholder transactions** over two days.
 
 Key characteristics:
@@ -78,17 +89,6 @@ This is a **highly imbalanced dataset**, which is common in real-world fraud det
 ---
 
 # 🧾 Dataset Features Explained
-
-## Dataset
-
-The dataset is not included in this repository due to GitHub file size limits.
-
-Download it from:
-https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
-
-After downloading, place the file here:
-
-FraudLens-AI/data/creditcard.csv
 
 The dataset contains **31 features**.
 
