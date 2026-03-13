@@ -7,3 +7,4 @@ shap
 matplotlib
 seaborn
 streamlit-echarts
+python_version<3.12
